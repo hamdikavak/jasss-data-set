@@ -4,22 +4,22 @@ import java.util.ArrayList;
 
 public class IssuePage {
 
-	private String volumeId;
-	private String issueId;
+	private int volumeId;
+	private int issueId;
 	private ArrayList<String> refereedArticleURLs;
 	private ArrayList<String> forumArticleURLs;
 	private ArrayList<String> reviewArticleURLs;
 	
-	public String getVolumeId() {
+	public int getVolumeId() {
 		return volumeId;
 	}
-	public void setVolumeId(String volumeId) {
+	public void setVolumeId(int volumeId) {
 		this.volumeId = volumeId;
 	}
-	public String getIssueId() {
+	public int getIssueId() {
 		return issueId;
 	}
-	public void setIssueId(String issueid) {
+	public void setIssueId(int issueid) {
 		this.issueId = issueid;
 	}
 	public ArrayList<String> getRefereedArticleURLs() {
