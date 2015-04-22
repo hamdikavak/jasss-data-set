@@ -14,6 +14,7 @@ import org.joda.time.format.DateTimeFormatterBuilder;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 
 import com.thoughtworks.xstream.XStream;
 
@@ -21,16 +22,27 @@ public class JASSSDataRetriever {
 	private String jasssIndex = "http://jasss.soc.surrey.ac.uk/index_by_issue.html";
 	
 	public static void main(String[] args) {
-		JASSSDataRetriever jasss = new JASSSDataRetriever();
-		ArrayList<IssuePage> issuePages = new ArrayList<IssuePage>();
-		ArrayList<String> issueURLs = jasss.extractIssueURLs();
-		IssuePage tempIssue;
 		String path = args[0];
+		JASSSDataRetriever jasss = new JASSSDataRetriever();
+		jasss.retrieveAndExport(path);
+		
+		//jasss.exportAnArticle(path, "http://jasss.soc.surrey.ac.uk/1/1/1.html");
+	}
+	/*
+	public void exportAnArticle(String path, String url){
+		JASSSArticle myArticle = this.extractArticle(url, 1, 1, ArticleType.Refereed);
+		exportArticle (myArticle, path, 1);
+	}*/
+	public void retrieveAndExport(String path) {
+		ArrayList<IssuePage> issuePages = new ArrayList<IssuePage>();
+		ArrayList<String> issueURLs = this.extractIssueURLs();
+		IssuePage tempIssue;
+		
 		int counter;
 		
 		for(String issueURL: issueURLs){
 			System.out.println("Issue URL:" + issueURL);
-			tempIssue = jasss.extractIssuePageContent(issueURL);
+			tempIssue = this.extractIssuePageContent(issueURL);
 			issuePages.add(tempIssue);
 		}
 		
@@ -45,7 +57,7 @@ public class JASSSDataRetriever {
 			for(String articleURL: issue.getRefereedArticleURLs()){
 				System.out.println( articleURL);
 				counter++;
-				JASSSArticle myArticle = jasss.extractArticle(articleURL, issue.getVolumeId(), issue.getIssueId(), ArticleType.Refereed);
+				JASSSArticle myArticle = this.extractArticle(articleURL, issue.getVolumeId(), issue.getIssueId(), ArticleType.Refereed);
 				exportArticle (myArticle, path, counter);
 			}
 			System.out.println("FORUM");
@@ -53,7 +65,7 @@ public class JASSSDataRetriever {
 			for(String articleURL: issue.getForumArticleURLs()){
 				System.out.println(articleURL);
 				counter++;
-				JASSSArticle myArticle = jasss.extractArticle(articleURL, issue.getVolumeId(), issue.getIssueId(), ArticleType.Forum);
+				JASSSArticle myArticle = this.extractArticle(articleURL, issue.getVolumeId(), issue.getIssueId(), ArticleType.Forum);
 				exportArticle (myArticle, path, counter);
 			}
 			
@@ -62,13 +74,12 @@ public class JASSSDataRetriever {
 			for(String articleURL: issue.getReviewArticleURLs()){
 				System.out.println(articleURL);
 				counter++;
-				JASSSArticle myArticle = jasss.extractArticle(articleURL, issue.getVolumeId(), issue.getIssueId(), ArticleType.Review);
+				JASSSArticle myArticle = this.extractArticle(articleURL, issue.getVolumeId(), issue.getIssueId(), ArticleType.Review);
 				exportArticle (myArticle, path, counter);
 			}
 		}
-		
 	}
-	
+
 	private static void exportArticle(JASSSArticle myArticle, String path, int counter) {
 		XStream xstream = new XStream();
 		xstream.alias("article", JASSSArticle.class);
@@ -100,7 +111,19 @@ public class JASSSDataRetriever {
 			
 			if(desc.equals("301")){
 				// This is a special case in the first issue. Here description does not contain the abstract.
-				// TODO
+				
+				Elements els = doc.getAllElements();
+				int i = 0;
+				
+				for(i=0; i< els.size(); i++){
+					if(els.get(i).text().toLowerCase().equals("abstract")){
+						
+						break;
+					}
+				}
+				i=i+2;
+				
+				jasssArticle.setAbstractText(els.get(i).text());
 			}
 			else{
 				jasssArticle.setAbstractText(desc.trim());
