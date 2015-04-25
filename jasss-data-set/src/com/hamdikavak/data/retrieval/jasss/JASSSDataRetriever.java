@@ -24,15 +24,15 @@ public class JASSSDataRetriever {
 	public static void main(String[] args) {
 		String path = args[0];
 		JASSSDataRetriever jasss = new JASSSDataRetriever();
-		jasss.retrieveAndExport(path);
+		//jasss.retrieveAndExport(path);
 		
-		//jasss.exportAnArticle(path, "http://jasss.soc.surrey.ac.uk/1/1/1.html");
+		jasss.exportAnArticle(path, "http://jasss.soc.surrey.ac.uk/17/3/7.html");
 	}
-	/*
+	
 	public void exportAnArticle(String path, String url){
 		JASSSArticle myArticle = this.extractArticle(url, 1, 1, ArticleType.Refereed);
 		exportArticle (myArticle, path, 1);
-	}*/
+	}
 	public void retrieveAndExport(String path) {
 		ArrayList<IssuePage> issuePages = new ArrayList<IssuePage>();
 		ArrayList<String> issueURLs = this.extractIssueURLs();
@@ -144,6 +144,7 @@ public class JASSSDataRetriever {
 			jasssArticle.setPublicationYear(year);
 			
 			String articleText = extractArticleText(doc,  type);
+			jasssArticle.setContentText(articleText);
 			
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -155,10 +156,25 @@ public class JASSSDataRetriever {
 	
 	
 	private String extractArticleText(Document doc, ArticleType type) {
+		StringBuilder docText = new StringBuilder();
+		String prevElementText ;
 		
+		for(Element el: doc.select("dl[compact]")){
+			Element prevElem = el.previousElementSibling();
+			
+			
+			
+			prevElementText = prevElem.text().trim().toLowerCase();
+			
+			if(prevElementText.contains("abstract") == false && prevElementText.contains("reference") == false &&
+					prevElementText.contains("acknowled") == false && prevElementText.contains("abstract") == false && 
+					el.text().toLowerCase().startsWith("keywords") == false){
+				docText.append(el.text());
+			}
+					
+		}
 		
-		
-		return null;
+		return docText.toString();
 	}
 
 	private int extractYear(String dateString) {
