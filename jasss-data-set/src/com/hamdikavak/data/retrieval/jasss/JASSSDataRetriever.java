@@ -24,9 +24,9 @@ public class JASSSDataRetriever {
 	public static void main(String[] args) {
 		String path = args[0];
 		JASSSDataRetriever jasss = new JASSSDataRetriever();
-		//jasss.retrieveAndExport(path);
+		jasss.retrieveAndExport(path);
 		
-		jasss.exportAnArticle(path, "http://jasss.soc.surrey.ac.uk/17/3/7.html");
+		//jasss.exportAnArticle(path, "http://jasss.soc.surrey.ac.uk/17/3/7.html");
 	}
 	
 	public void exportAnArticle(String path, String url){
@@ -86,7 +86,7 @@ public class JASSSDataRetriever {
 		
 		FileOutputStream outputStream = null;
 		try {
-			outputStream = new FileOutputStream(path+ myArticle.getVolumeNumber() + "-" + myArticle.getIssueNumber() 
+			outputStream = new FileOutputStream(path+ System.getProperty("file.separator") + myArticle.getVolumeNumber() + "-" + myArticle.getIssueNumber() 
 					+ "-" + myArticle.getType().toString().toLowerCase() + "-" + counter + ".xml");
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
@@ -113,17 +113,19 @@ public class JASSSDataRetriever {
 				// This is a special case in the first issue. Here description does not contain the abstract.
 				
 				Elements els = doc.getAllElements();
+				boolean abstractFound = false;
 				int i = 0;
 				
 				for(i=0; i< els.size(); i++){
 					if(els.get(i).text().toLowerCase().equals("abstract")){
-						
+						abstractFound = true;
 						break;
 					}
 				}
-				i=i+2;
 				
-				jasssArticle.setAbstractText(els.get(i).text());
+				if(abstractFound == true){
+					jasssArticle.setAbstractText(els.get(i+2).text());
+				}
 			}
 			else{
 				jasssArticle.setAbstractText(desc.trim());
@@ -159,20 +161,24 @@ public class JASSSDataRetriever {
 		StringBuilder docText = new StringBuilder();
 		String prevElementText ;
 		
-		for(Element el: doc.select("dl[compact]")){
-			Element prevElem = el.previousElementSibling();
-			
-			
-			
-			prevElementText = prevElem.text().trim().toLowerCase();
-			
-			if(prevElementText.contains("abstract") == false && prevElementText.contains("reference") == false &&
-					prevElementText.contains("acknowled") == false && prevElementText.contains("abstract") == false && 
-					el.text().toLowerCase().startsWith("keywords") == false){
-				docText.append(el.text());
-			}
+		//if(type == ArticleType.Refereed){
+		
+			for(Element el: doc.select("dl[compact]")){
+				Element prevElem = el.previousElementSibling();
+				
+				
+				
+				if(prevElem != null ){
+					prevElementText = prevElem.text().trim().toLowerCase();
 					
-		}
+					if(prevElementText.contains("abstract") == false && prevElementText.contains("reference") == false &&
+							prevElementText.contains("acknowled") == false && prevElementText.contains("abstract") == false && 
+							el.text().toLowerCase().startsWith("keywords") == false){
+						docText.append(el.text());
+					}
+				}
+			}
+		//}
 		
 		return docText.toString();
 	}
