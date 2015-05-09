@@ -5,9 +5,8 @@ public class JASSSArticle {
 	private String title;
 	private ArticleType type;
 	private int publicationYear;
-	private int volumeNumber;
-	private int issueNumber;
-
+	private IssuePage issuePage;
+	
 	private String[] authors;
 	private String[] keywords;
 	
@@ -15,6 +14,12 @@ public class JASSSArticle {
 	private String contentText;
 	private String URL;
 	
+	public IssuePage getIssuePage() {
+		return issuePage;
+	}
+	public void setIssuePage(IssuePage issuePage) {
+		this.issuePage = issuePage;
+	}
 	public String getURL() {
 		return URL;
 	}
@@ -38,18 +43,6 @@ public class JASSSArticle {
 	}
 	public void setPublicationYear(int publicationYear) {
 		this.publicationYear = publicationYear;
-	}
-	public int getVolumeNumber() {
-		return volumeNumber;
-	}
-	public void setVolumeNumber(int volumeNumber) {
-		this.volumeNumber = volumeNumber;
-	}
-	public int getIssueNumber() {
-		return issueNumber;
-	}
-	public void setIssueNumber(int issueNumber) {
-		this.issueNumber = issueNumber;
 	}
 	public String[] getAuthors() {
 		return authors;
