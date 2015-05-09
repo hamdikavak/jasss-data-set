@@ -97,10 +97,10 @@ public class JASSSDataExtracter {
 				}
 				
 				else if(el.tagName().toLowerCase().equals("h2") || el.tagName().toLowerCase().equals("h3")){
-					if(el.text().toLowerCase().contains("articles") == true){
+					if(el.text().toLowerCase().contains("articles") == true || el.text().toLowerCase().contains("essay") == true){
 						mode = 1;
 					}
-					else if(el.text().toLowerCase().equals("forum") == true){
+					else if(el.text().toLowerCase().contains("forum") == true){
 						mode = 2;
 					}
 					else if(el.text().toLowerCase().contains("review") == true){
