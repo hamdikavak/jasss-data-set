@@ -14,8 +14,6 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import com.thoughtworks.xstream.XStream;
-
 public class JASSSDataExtracter {
 	
 	private static final Logger logger = LogManager.getLogger(JASSSDataExtracter.class);
@@ -161,12 +159,18 @@ public class JASSSDataExtracter {
 				jasssArticle.setKeywords(keywords);
 			}
 			
-			String authorsString = doc.select("[name=DC.Creator]").attr("content");
+			String authorsString = doc.select("[name=DC.Creator]").attr("content").trim();
 			String[] authors = separateAuthors(authorsString);
 			jasssArticle.setAuthors(authors);
 			
-			String dateString = doc.select("[name=DC.Date]").attr("content");
-			int year = extractYear(dateString);
+			String dateString = doc.select("[name=DC.Date]").attr("content").trim();
+			dateString = dateString.replace(" ", "");
+			int year = extractYearFromDateMetaTag(dateString);
+			if(type != ArticleType.Review && year == 0){
+				// it means the meta tag came empty or there is another issue.
+				// get the date from the <body>
+				year = extractYearFromBody(doc);
+			}
 			jasssArticle.setPublicationYear(year);
 			
 			String articleText = extractArticleText(doc,  type);
@@ -180,6 +184,20 @@ public class JASSSDataExtracter {
 		return jasssArticle;
 	}
 	
+	private int extractYearFromBody(Document doc) {
+		
+		Elements elm = doc.select("p:contains(published):contains(received)"); // this should select the p element containing the publish date
+		try{
+			String datePublished = elm.get(0).text().trim().split("Published:")[1].trim();
+			return extractYearFromDateMetaTag(datePublished);
+		}
+		catch(Exception ex){
+			logger.info("Exception:" + ex.getLocalizedMessage());
+		}
+		
+		return 0;
+	}
+
 	private String getAbstractText(String desc, Elements allElements) {
 		
 		if(desc.equals("301")){
@@ -200,6 +218,9 @@ public class JASSSDataExtracter {
 			}
 			return null;
 		}
+		else if(desc.startsWith("[No abstract")){
+			return "";
+		}
 		else{
 			return desc.trim();
 		}
@@ -208,32 +229,50 @@ public class JASSSDataExtracter {
 	private String extractArticleText(Document doc, ArticleType type) {
 		StringBuilder docText = new StringBuilder();
 		String prevElementText ;
+		Elements elems =  doc.select("dl[compact]");
 		
-		//if(type == ArticleType.Refereed){
 		
-			for(Element el: doc.select("dl[compact]")){
-				Element prevElem = el.previousElementSibling();
+		for(Element el: elems){
+			Element prevElem = el.previousElementSibling();
 
+			
+			if(prevElem != null ){
+				prevElementText = prevElem.text().trim().toLowerCase();
 				
-				if(prevElem != null ){
-					prevElementText = prevElem.text().trim().toLowerCase();
-					
-					if(prevElementText.contains("abstract") == false && prevElementText.contains("reference") == false &&
-							prevElementText.contains("acknowled") == false && prevElementText.contains("abstract") == false && 
-							el.text().toLowerCase().startsWith("keywords") == false){
-						docText.append(el.text());
-					}
+				if(prevElementText.contains("abstract") == false && prevElementText.contains("reference") == false &&
+						prevElementText.contains("acknowled") == false && prevElementText.contains("abstract") == false && 
+						el.text().toLowerCase().startsWith("keywords") == false){
+					docText.append(el.text());
 				}
 			}
-		//}
+		}
+	
+		if(docText.toString().length() == 0 && type == ArticleType.Review){
+			elems =  doc.getAllElements();
+			boolean getText = false;
+			for(Element el: elems){
+				if(el.tagName().equals("p") && el.text().toLowerCase().contains("reviewed by")){
+					getText = true;
+					continue;
+				}
+				else if(getText == true && el.tagName().toLowerCase().equals("h3") && el.text().toLowerCase().contains("references")){
+					break;
+				}
+				
+				if(getText == true){
+					docText.append(el.text());
+				}
+			}
+		}
 		
 		return docText.toString();
 	}
 
-	private int extractYear(String dateString) {
+	private int extractYearFromDateMetaTag(String dateString) {
 		// There are two date formats in articles
 		// 1) d-mmm-yy(earlier format)
-		// 2) yyyy-MM-dd(current format)
+		// 2) d-mmm-yyyy(another earlier format)
+		// 3) yyyy-MM-dd(current format)
 		DateTimeFormatter oldFormatter = new DateTimeFormatterBuilder()
 		        .appendDayOfMonth(2)
 		        .appendLiteral('-')
@@ -241,22 +280,44 @@ public class JASSSDataExtracter {
 		        .appendLiteral('-')
 		        .appendTwoDigitYear(2000)
 		        .toFormatter();
+		DateTimeFormatter anotherOldFormatter = new DateTimeFormatterBuilder()
+		        .appendDayOfMonth(2)
+		        .appendLiteral('-')
+		        .appendMonthOfYearShortText()
+		        .appendLiteral('-')
+		        .appendYear(4, 4)
+		        .toFormatter();
 		DateTimeFormatter currentFormatter = DateTimeFormat.forPattern("yyyy-MM-dd");
 		LocalDate date;
 		
+		// the most current date representation.
 		try{
 			date = LocalDate.parse(dateString, currentFormatter);
+			return date.getYear();
 		}
 		catch(Exception ex){
-			// not the old format
-			try{
-				date = LocalDate.parse(dateString, oldFormatter);
-			}
-			catch(Exception ex2){
-				return 0;
-			}
+			//logger.info("Current date parsing failed");
 		}
-		return date.getYear();
+		
+		// the older date representation.
+		try{
+			date = LocalDate.parse(dateString, oldFormatter);
+			return date.getYear();
+		}
+		catch(Exception ex2){
+			//logger.info("Older date parsing failed");
+			
+		}
+		
+		try{
+			date = LocalDate.parse(dateString, anotherOldFormatter);
+			return date.getYear();
+		}
+		catch(Exception ex2){
+			//logger.info("Older date parsing failed");
+			return 0;
+		}
+		
 	}
 
 	private String[] separateKeywords(String keywordsString) {

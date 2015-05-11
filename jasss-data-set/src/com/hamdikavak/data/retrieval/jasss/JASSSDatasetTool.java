@@ -5,6 +5,11 @@ import java.util.ArrayList;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+/**
+ * 
+ * @author Hamdi
+ *
+ */
 public class JASSSDatasetTool {
 
 	private static final Logger logger = LogManager
@@ -41,7 +46,7 @@ public class JASSSDatasetTool {
 				logger.info("Peer reviewed article URL: " + articleURL);
 				counter++;
 				JASSSArticle myArticle = jasssDataExtracter.extractArticle(
-						articleURL, issue, ArticleType.Refereed);
+						articleURL, issue, ArticleType.PeerReviewed);
 				filePath = path + System.getProperty("file.separator")
 						+ issue.getVolumeId() + "-" + issue.getIssueId() + "-"
 						+ myArticle.getType().toString().toLowerCase() + "-"

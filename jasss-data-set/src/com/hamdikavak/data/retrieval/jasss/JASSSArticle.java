@@ -6,13 +6,14 @@ public class JASSSArticle {
 	private ArticleType type;
 	private int publicationYear;
 	private IssuePage issuePage;
+	private String URL;
 	
 	private String[] authors;
 	private String[] keywords;
 	
 	private String abstractText;
 	private String contentText;
-	private String URL;
+	
 	
 	public IssuePage getIssuePage() {
 		return issuePage;

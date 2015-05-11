@@ -12,6 +12,7 @@ public class JASSSDataExporter {
 	public static void exportArticle(JASSSArticle myArticle, String location) {
 		
 		XStream xstream = new XStream();
+		xstream.processAnnotations(IssuePage.class);
 		xstream.alias("article", JASSSArticle.class);
 		
 		FileOutputStream outputStream = null;

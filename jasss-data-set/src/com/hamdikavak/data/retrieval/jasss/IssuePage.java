@@ -2,12 +2,17 @@ package com.hamdikavak.data.retrieval.jasss;
 
 import java.util.ArrayList;
 
+import com.thoughtworks.xstream.annotations.XStreamOmitField;
+
 public class IssuePage {
 
 	private int volumeId;
 	private int issueId;
+	@XStreamOmitField
 	private ArrayList<String> refereedArticleURLs;
+	@XStreamOmitField
 	private ArrayList<String> forumArticleURLs;
+	@XStreamOmitField
 	private ArrayList<String> reviewArticleURLs;
 	
 	public int getVolumeId() {
