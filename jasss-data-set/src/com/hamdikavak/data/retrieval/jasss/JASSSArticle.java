@@ -4,7 +4,7 @@ public class JASSSArticle {
 	
 	private String title;
 	private ArticleType type;
-	private int publicationYear;
+	private Integer publicationYear;
 	private IssuePage issuePage;
 	private String URL;
 	
@@ -39,10 +39,10 @@ public class JASSSArticle {
 	public void setType(ArticleType type) {
 		this.type = type;
 	}
-	public int getPublicationYear() {
+	public Integer getPublicationYear() {
 		return publicationYear;
 	}
-	public void setPublicationYear(int publicationYear) {
+	public void setPublicationYear(Integer publicationYear) {
 		this.publicationYear = publicationYear;
 	}
 	public String[] getAuthors() {
